@@ -1,10 +1,20 @@
-/*
-Working Platform:- DB2, MySQL, Oracle, MS SQL Server
-*/
-SELECT X, Y FROM FUNCTIONS F1
-    WHERE EXISTS(SELECT * FROM FUNCTIONS F2 WHERE F2.Y = F1.X
-    AND F2.X = F1.Y AND F2.X > F1.X) AND (X != Y)
-UNION
-SELECT X,Y FROM FUNCTIONS F1 WHERE X = Y AND 
-    ((SELECT COUNT(*) FROM FUNCTIONS WHERE X = F1.X AND Y = F1.X) > 1)
-      ORDER BY X;
+select x, y
+from
+(
+    -- select valid couples (same x and y that exist on at least 2 lines)
+    select x, y 
+    from   functions 
+    where  x = y
+    group by x, y 
+    having count(*) > 1
+    union all
+    -- select other symmetric pairs
+    select distinct f1.x, f1.y
+    from   functions f1 
+    join   functions f2 on  f1.x = f2.y
+                        and f1.y = f2.x
+                        and f1.x != f2.x
+) a
+where a.x <= a.y
+order by a.x
+;
